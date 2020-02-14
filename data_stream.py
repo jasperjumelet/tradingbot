@@ -4,13 +4,17 @@ import sqlite3
 from sqlite3 import Error
 
 class Datastream():
-    def __init__(self, api_url, exchange):
+    def __init__(self, api_url, api_location):
         self.timestamp = None
         self.chartname = None
         self.USD_rate = None
         self.EUR_rate = None
         self.api_url = api_url
-        self.exchange = exchange
+        self.api_location = api_location
+
+        # all the available api_locations which we can use to access the data
+        self.list_of_api_locations = ['coindesk', 'test1', 'test2']
+
         # here we initialize the database name and the current status of the connection to the database
         self.database = "database.db"
         self.conn = None
@@ -25,8 +29,8 @@ class Datastream():
     def close_connection(self):
         self.conn.close()
 
-
-    def collect_data(self):
+    # this is the data collection specific for coindesk
+    def collect_data_coindesk(self):
        
         btc_data = urllib.request.urlopen(self.api_url).read() 
         btc_data = btc_data.decode()
@@ -46,19 +50,34 @@ class Datastream():
         print("#########################")
         print("EUR_rate = ", self.EUR_rate)
 
-    def setup_database(self):
-        pass
+    # Here we select which method we are going to use to collect the data
+    def collect_data(self):
+        if self.api_location == "coindesk":
+            self.collect_data_coindesk()
+
+        # here we write other statements and we can write new methods 
+        # to collect data from other api's
+
+   
+    # def setup_database(self):
+    #     c = self.conn.cursor()
+    #     #c.execute("""CREATE DATABASE Cryptodata;""")
+    #     for item in self.list_of_api_locations:
+    #         c.execute("""CREATE TABLE {} (
+    #             LastName varchar(255)
+    #             );""".format(item))
 
     def database_push(self):
         pass
 
 def main():
-    Agent = Datastream(api_url="https://api.coindesk.com/v1/bpi/currentprice.json", exchange="coindesk")
+    Agent = Datastream(api_url="https://api.coindesk.com/v1/bpi/currentprice.json", api_location="coindesk")
     Agent.create_connection()
     Agent.collect_data()
-    print(Agent.timestamp)
+    print("##########################")
+    print(Agent.api_location)
+    #print(Agent.timestamp)
     Agent.close_connection()
-    #Agent.setup_database()
     #Agent.database_push()
 
 main()
